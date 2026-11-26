@@ -1,0 +1,31 @@
+{
+  "name": "jao-custom-prototype",
+  "version": "1.0.2",
+  "description": "Custom prototype helpers for Node.js",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "keywords": [
+    "prototype",
+    "helper",
+    "array",
+    "nodejs"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SilentCode1003/jao-custom-prototype.git"
+  },
+  "author": "Joseph A. Orencio",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SilentCode1003/jao-custom-prototype/issues"
+  },
+  "homepage": "https://github.com/SilentCode1003/jao-custom-prototype#readme"
+}
