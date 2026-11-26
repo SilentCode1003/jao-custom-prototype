@@ -1,18 +1,35 @@
 // custom_prototype/prototypes/Array.js
+
+/**
+ * Normalizes a Sequelize Model instance into its plain column object,
+ * or returns plain objects / BaseModelProperty instances as-is.
+ */
+function normalizeRow(row) {
+  if (!row || typeof row !== 'object') return null;
+  if (typeof row.get === 'function') {
+    return row.get({ plain: true });
+  }
+  if (row.dataValues && typeof row.dataValues === 'object') {
+    return row.dataValues;
+  }
+  return row;
+}
+
 function pickColumns(row, columns) {
   const result = {};
-  if (!row) return result;
+  const plainRow = normalizeRow(row);
+  if (!plainRow) return result;
 
   if (Array.isArray(columns)) {
     for (const col of columns) {
-      if (col in row) result[col] = row[col];
+      if (col in plainRow) result[col] = plainRow[col];
     }
     return result;
   }
 
   if (typeof columns === 'object' && columns !== null) {
     for (const [alias, originalCol] of Object.entries(columns)) {
-      if (originalCol in row) result[alias] = row[originalCol];
+      if (originalCol in plainRow) result[alias] = plainRow[originalCol];
     }
   }
   return result;
@@ -27,20 +44,24 @@ const arrayExtensions = {
   },
   toKvP(keyColumn, valueColumn) {
     return this.reduce((acc, row) => {
-      if (row && row[keyColumn] !== undefined) {
-        acc[row[keyColumn]] = row[valueColumn] ?? null;
+      const plainRow = normalizeRow(row);
+      if (plainRow && plainRow[keyColumn] !== undefined && plainRow[keyColumn] !== null) {
+        acc[plainRow[keyColumn]] = plainRow[valueColumn] ?? null;
       }
       return acc;
     }, {});
   },
   toIndexedKvP(keyColumn, valueColumns = []) {
     return this.reduce((acc, row) => {
-      if (!row || row[keyColumn] === undefined) return acc;
-      const key = row[keyColumn];
+      const plainRow = normalizeRow(row);
+      if (!plainRow || plainRow[keyColumn] === undefined || plainRow[keyColumn] === null) {
+        return acc;
+      }
+      const key = plainRow[keyColumn];
       acc[key] =
         Array.isArray(valueColumns) && valueColumns.length === 0
-          ? { ...row }
-          : pickColumns(row, valueColumns);
+          ? { ...plainRow }
+          : pickColumns(plainRow, valueColumns);
       return acc;
     }, {});
   },
@@ -49,18 +70,20 @@ const arrayExtensions = {
   },
   toGroupedKvP(groupColumn, valueColumns = []) {
     return this.reduce((acc, row) => {
-      const groupKey = row?.[groupColumn] ?? 'unassigned';
+      const plainRow = normalizeRow(row);
+      const groupKey = plainRow?.[groupColumn] ?? 'unassigned';
       if (!acc[groupKey]) acc[groupKey] = [];
       const item =
         Array.isArray(valueColumns) && valueColumns.length === 0
-          ? { ...row }
-          : pickColumns(row, valueColumns);
+          ? { ...(plainRow || {}) }
+          : pickColumns(plainRow, valueColumns);
       acc[groupKey].push(item);
       return acc;
     }, {});
   },
   toJson(pretty = false) {
-    return JSON.stringify(this, null, pretty ? 2 : 0);
+    const normalized = this.map((row) => normalizeRow(row) ?? row);
+    return JSON.stringify(normalized, null, pretty ? 2 : 0);
   },
 };
 

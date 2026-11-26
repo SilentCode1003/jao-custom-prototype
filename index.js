@@ -1,4 +1,13 @@
 // custom_prototype/index.js
 const ArrayPrototype = require('./prototypes/Array');
+const SchemaExtractor = require('./prototypes/SchemaExtractor');
 
-module.exports = ArrayPrototype;
+// Automatically apply Array prototype extensions upon import
+if (typeof SchemaExtractor.register === 'function') {
+    SchemaExtractor.register();
+}
+
+module.exports = {
+    ArrayPrototype,
+    SchemaExtractor,
+};
