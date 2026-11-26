@@ -6,7 +6,8 @@
   "types": "index.d.ts",
   "files": [
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "prototypes/"
   ],
   "keywords": [
     "prototype",
@@ -17,9 +18,9 @@
   "license": "MIT",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "patch": "npm version patch && npm publish",
-    "minor": "npm version minor && npm publish",
-    "major": "npm version major && npm publish"
+    "patch": "node scripts/release.js patch",
+    "minor": "node scripts/release.js minor",
+    "major": "node scripts/release.js major"
   },
   "repository": {
     "type": "git",

@@ -1,4 +1,4 @@
 // custom_prototype/index.js
-const ResultArray = require('./Array');
+const ArrayPrototype = require('./prototypes/Array');
 
-module.exports = ResultArray;
+module.exports = ArrayPrototype;
