@@ -2,7 +2,7 @@
 
 /**
  * Normalizes a Sequelize Model instance into its plain column object,
- * or returns plain objects / BaseModelProperty instances as-is.
+ * or returns plain objects / DataRow instances as-is.
  */
 function normalizeRow(row) {
   if (!row || typeof row !== 'object') return null;
@@ -13,6 +13,28 @@ function normalizeRow(row) {
     return row.dataValues;
   }
   return row;
+}
+
+/**
+ * Wraps a single row so every column is exposed as a direct property (d.name, d.age).
+ */
+class DataRow {
+  constructor(row = {}, columns = null) {
+    const plain = normalizeRow(row) || {};
+    const keys = Array.isArray(columns) && columns.length > 0 ? columns : Object.keys(plain);
+
+    for (const key of keys) {
+      this[key] = plain[key] !== undefined ? plain[key] : null;
+    }
+  }
+
+  getColumns() {
+    return Object.keys(this);
+  }
+
+  toObject() {
+    return { ...this };
+  }
 }
 
 function pickColumns(row, columns) {
@@ -41,6 +63,31 @@ const arrayExtensions = {
   },
   isNotEmpty() {
     return this.length > 0;
+  },
+  /**
+   * Converts every item in the array into a DataRow property instance
+   * so you can iterate with `for (const d of rows.toProperties())` and access `d.name`.
+   */
+  toProperties(columns = null) {
+    return this.map((row) => (row instanceof DataRow ? row : new DataRow(row, columns)));
+  },
+  /**
+   * Extracts the column names from the first row in the array.
+   */
+  getColumns() {
+    if (this.length === 0) return [];
+    const plainRow = normalizeRow(this[0]);
+    return plainRow ? Object.keys(plainRow) : [];
+  },
+  /**
+   * Iterates over normalized DataRow items so `d.name` is directly accessible inside the callback.
+   */
+  each(callback) {
+    for (let i = 0; i < this.length; i++) {
+      const item = this[i] instanceof DataRow ? this[i] : new DataRow(this[i]);
+      callback(item, i);
+    }
+    return this;
   },
   toKvP(keyColumn, valueColumn) {
     return this.reduce((acc, row) => {
@@ -97,5 +144,7 @@ for (const [name, fn] of Object.entries(arrayExtensions)) {
     });
   }
 }
+
+Array.DataRow = DataRow;
 
 module.exports = Array;
